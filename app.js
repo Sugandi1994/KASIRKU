@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const path = require('path');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
@@ -377,6 +377,10 @@ app.delete('/api/categories/:id', (req, res) => {
 // Serve frontend
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
+app.get('/barcode-scanner.html', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../public/barcode-scanner.html'));
 });
 
 app.listen(PORT, () => {

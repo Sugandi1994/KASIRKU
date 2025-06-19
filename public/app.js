@@ -1202,6 +1202,17 @@ function editProduct(id, name, buy_price, sell_price, stock, category = '', barc
     document.getElementById('product-form-title').innerText = 'Edit Produk';
     document.getElementById('product-save-btn').innerText = 'Update';
     document.getElementById('product-cancel-btn').style.display = '';
+
+    // Ensure the product form is visible when editing
+    const formContainer = document.getElementById('product-form-container');
+    const toggleBtn = document.getElementById('toggle-product-form-btn');
+    if (formContainer && (formContainer.style.display === 'none' || formContainer.style.display === '')) {
+        formContainer.style.display = 'block';
+        if (toggleBtn) {
+            toggleBtn.innerText = 'Sembunyikan Form';
+        }
+    }
+
     loadProducts(); // Reload product table after loading product to edit
 }
 
