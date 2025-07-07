@@ -1675,6 +1675,33 @@ function renderTrxItems() {
     `;
   });
   document.getElementById('trx-total').innerText = 'Rp' + total.toLocaleString('id-ID');
+
+  calculateChange(); // Panggil ini setelah total dihitung dan ditampilkan
+}
+
+// TAMBAHAN UNTUK UANG TRANSAKSI
+function calculateChange() {
+    const amountPaidInput = document.getElementById('amount-paid');
+    const changeDisplay = document.getElementById('change-display');
+    const totalAmountElement = document.getElementById('trx-total'); // Ganti ke 'trx-total'
+
+    const amountPaid = parseFloat(amountPaidInput.value) || 0;
+
+    // Ambil teks dari elemen 'trx-total' (contoh: "Rp1.500.000")
+    let totalAmountText = totalAmountElement.innerText;
+    // Hapus 'Rp' dan titik (.) sebagai pemisah ribuan
+    totalAmountText = totalAmountText.replace('Rp', '').replace(/\./g, '');
+    const totalAmount = parseFloat(totalAmountText) || 0;
+
+    let change = amountPaid - totalAmount;
+
+    if (change < 0) {
+        changeDisplay.style.color = 'red';
+        changeDisplay.innerText = 'Rp' + change.toLocaleString('id-ID');
+    } else {
+        changeDisplay.style.color = 'green';
+        changeDisplay.innerText = 'Rp' + change.toLocaleString('id-ID');
+    }
 }
 
 // Handler untuk update harga per item di transaksi (nama unik: trxEditPrice)
