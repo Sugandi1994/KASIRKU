@@ -847,12 +847,12 @@ function renderProductTable() {
             if (col.key === 'no') {
                 html += `<td>${productPaginationEnabled ? ((productCurrentPage - 1) * productPageSize + i + 1) : (i + 1)}</td>`;
             } else if (col.key === 'actions') {
-                html += `<td style="text-align:center;">
-                    <div class="product-row-actions">
-                        <button class="btn-small edit" title="Edit" onclick="editProduct('${row.id}', \`${row.name.replace(/`/g, '\\`')}\`, '${row.buy_price}', '${row.sell_price}', '${row.stock}', '${row.category || ''}')">&#9998;</button>
-                        <button class="btn-small del" title="Hapus" onclick="deleteProduct('${row.id}')">&#128465;</button>
-                    </div>
-                </td>`;
+html += `<td style="text-align:center;">
+    <div class="product-row-actions">
+        <button class="btn-small edit" title="Edit" onclick="editProduct('${row.id}', \`${row.name.replace(/`/g, '\\`')}\`, '${row.buy_price}', '${row.sell_price}', '${row.stock}', '${row.category || ''}', '${row.barcode || ''}')">&#9998;</button>
+        <button class="btn-small del" title="Hapus" onclick="deleteProduct('${row.id}')">&#128465;</button>
+    </div>
+</td>`;
             } else {
                 let cell = row[col.key];
                 if (col.format) {
@@ -1226,6 +1226,7 @@ function resetProductForm() {
     document.getElementById('prodbuy').value = '';
     document.getElementById('prodsell').value = '';
     document.getElementById('prodstock').value = '';
+    document.getElementById('prodbarcode').value = ''; // Clear barcode input
     document.getElementById('prodcategory').value = '';
     document.getElementById('product-form-title').innerText = 'Tambah Produk';
     document.getElementById('product-save-btn').innerText = 'Tambah';
