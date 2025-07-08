@@ -45,5 +45,22 @@
         "subtotal": 15000
       }
     ]
+  },
+  {
+    "id": 1751958345502,
+    "date": "2025-07-08T07:05:45.502Z",
+    "customer_name": "Sugandi",
+    "total": 15000,
+    "amount_paid": 50000,
+    "change": 35000,
+    "items": [
+      {
+        "product_id": "1",
+        "name": "153",
+        "qty": 1,
+        "price": 15000,
+        "subtotal": 15000
+      }
+    ]
   }
 ]

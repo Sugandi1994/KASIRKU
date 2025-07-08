@@ -1633,6 +1633,56 @@ function createProductAutocomplete() {
     });
 }
 
+function setupCustomerAutocomplete() {
+    const input = document.getElementById('trx-customer-name');
+    const list = document.getElementById('trx-customer-name-list');
+    let customers = [];
+
+    // Load customers from API
+    fetch('/api/customers')
+        .then(r => r.json())
+        .then(data => {
+            customers = data;
+        })
+        .catch(() => {
+            customers = [];
+        });
+
+    input.addEventListener('input', () => {
+        const val = input.value.trim().toLowerCase();
+        list.innerHTML = '';
+        if (!val) {
+            list.style.display = 'none';
+            return;
+        }
+        const filtered = customers.filter(c => c.name.toLowerCase().includes(val));
+        if (filtered.length === 0) {
+            list.style.display = 'none';
+            return;
+        }
+        filtered.forEach(c => {
+            const item = document.createElement('div');
+            item.textContent = c.name;
+            item.style.padding = '6px';
+            item.style.cursor = 'pointer';
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // Prevent losing focus
+                input.value = c.name;
+                list.style.display = 'none';
+            });
+            list.appendChild(item);
+        });
+        list.style.display = 'block';
+    });
+
+    // Hide list when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !list.contains(e.target)) {
+            list.style.display = 'none';
+        }
+    });
+}
+
 // Transaksi
 function loadTrxProducts() {
     fetch('/api/products').then(r => r.json()).then(products => {
@@ -2356,6 +2406,9 @@ window.onload = function() {
     const session = loadSession();
     if (session && session.username && session.role) {
         currentUser = session;
+
+        setupCustomerAutocomplete();
+
         showDashboard();
         // Load cart from localStorage and render
         trxItems = loadCartFromStorage();
