@@ -84,6 +84,7 @@ function toggleUserForm() {
     }
 }
 
+
 function toggleProductForm() {
     const formContainer = document.getElementById('product-form-container');
     const toggleBtn = document.getElementById('toggle-product-form-btn');
@@ -94,6 +95,103 @@ function toggleProductForm() {
         formContainer.style.display = 'none';
         toggleBtn.innerText = 'Tambah Produk';
     }
+}
+
+let pelangganCurrentPage = 1;
+let pelangganPageSize = 10;
+let pelangganAllData = [];
+let pelangganFilteredData = null;
+let editingPelangganId = null;
+
+function renderPelangganTable() {
+    let data = pelangganFilteredData || pelangganAllData;
+    let startIdx = (pelangganCurrentPage - 1) * pelangganPageSize;
+    let pageData = data.slice(startIdx, startIdx + pelangganPageSize);
+
+    let html = '';
+    pageData.forEach((pel, i) => {
+        html += `
+            <tr>
+                <td>${startIdx + i + 1}</td>
+                <td>${pel.name}</td>
+                <td style="text-align:center;">
+                    <button class="btn-small edit" title="Edit" onclick="editPelanggan('${pel.id}', '${pel.name}')">&#9998;</button>
+                    <button class="btn-small del" title="Hapus" onclick="deletePelanggan('${pel.id}')">&#128465;</button>
+                </td>
+            </tr>
+        `;
+    });
+    document.querySelector('#pelanggan-table tbody').innerHTML = html;
+}
+
+function renderPelangganPagination() {
+    let data = pelangganFilteredData || pelangganAllData;
+    let total = data.length;
+    let pageCount = Math.ceil(total / pelangganPageSize);
+
+    // Remove old pagination if exists
+    document.getElementById('pelanggan-pagination')?.remove();
+
+    if (pageCount <= 1) return;
+
+    let html = `
+    <div id="pelanggan-pagination" style="display:flex; justify-content:center; align-items:center; gap:5px; margin-top: 15px;">
+        <button onclick="loadPelangganPage(1)" ${pelangganCurrentPage === 1 ? "disabled" : ""}>&laquo;</button>
+        <button onclick="loadPelangganPage(${pelangganCurrentPage-1})" ${pelangganCurrentPage === 1 ? "disabled" : ""}><</button>
+    `;
+
+    // Show max 5 page buttons
+    let start = Math.max(1, pelangganCurrentPage - 2);
+    let end = Math.min(pageCount, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+
+    for (let i = start; i <= end; i++) {
+        html += `<button onclick="loadPelangganPage(${i})" ${pelangganCurrentPage === i ? 'class="active"' : ""}>${i}</button>`;
+    }
+
+    html += `
+        <button onclick="loadPelangganPage(${pelangganCurrentPage+1})" ${pelangganCurrentPage === pageCount ? "disabled" : ""}>></button>
+        <button onclick="loadPelangganPage(${pageCount})" ${pelangganCurrentPage === pageCount ? "disabled" : ""}>&raquo;</button>
+    </div>`;
+
+    document.getElementById('pelanggan-list').insertAdjacentHTML('afterend', html);
+}
+
+function loadPelangganPage(page) {
+    pelangganCurrentPage = page;
+    renderPelangganTable();
+    renderPelangganPagination();
+}
+
+function editPelanggan(id, name) {
+    editingPelangganId = id;
+    document.getElementById('pelanggan-name').value = name;
+    document.getElementById('pelanggan-save-btn').innerText = 'Update';
+    document.getElementById('pelanggan-cancel-btn').style.display = '';
+}
+
+function cancelEditPelanggan() {
+    resetPelangganForm();
+}
+
+function resetPelangganForm() {
+    editingPelangganId = null;
+    document.getElementById('pelanggan-name').value = '';
+    document.getElementById('pelanggan-save-btn').innerText = 'Simpan';
+    document.getElementById('pelanggan-cancel-btn').style.display = 'none';
+}
+
+function deletePelanggan(id) {
+    if (!confirm('Hapus pelanggan ini?')) return;
+    fetch(`/api/customers/${id}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            loadPelanggan();
+        } else {
+            alert(res.message || 'Gagal menghapus pelanggan.');
+        }
+    });
 }
 
 function showDashboard() {
@@ -312,6 +410,7 @@ function showPage(page) {
     if(page === 'user') loadUsers();
     if(page === 'produk') loadProducts();
     if(page === 'kategori') loadCategories();
+    if(page === 'pelanggan') loadPelanggan();
     if(page === 'daftar') loadTrxList(1);
     if(page === 'transaksi') {
         loadTrxProducts();
@@ -333,6 +432,7 @@ function logout() {
 function showMenuByRole() {
     document.getElementById('nav-user').style.display = currentUser.role === 'admin' ? '' : 'none';
     document.getElementById('nav-produk').style.display = currentUser.role === 'admin' ? '' : 'none';
+    document.getElementById('nav-pelanggan').style.display = currentUser.role === 'admin' ? '' : 'none';
 }
 
 function showPage(page) {
@@ -341,11 +441,80 @@ function showPage(page) {
     if(page === 'user') loadUsers();
     if(page === 'produk') loadProducts();
     if(page === 'kategori') loadCategories();
+    if(page === 'pelanggan') loadPelanggan();
     if(page === 'daftar') loadTrxList(1);
     if(page === 'transaksi') {
         loadTrxProducts();
         renderTrxItems(); // Untuk tabel keranjang transaksi
         loadLastTrxList(); // --- Tampilkan 5 transaksi terakhir di bawah form transaksi
+    }
+}
+
+function togglePelangganForm() {
+    const formContainer = document.getElementById('pelanggan-form-container');
+    const toggleBtn = document.getElementById('toggle-pelanggan-form-btn');
+    if (formContainer.style.display === 'none' || formContainer.style.display === '') {
+        formContainer.style.display = 'block';
+        toggleBtn.innerText = 'Sembunyikan Form';
+    } else {
+        formContainer.style.display = 'none';
+        toggleBtn.innerText = 'Tambah Pelanggan Baru';
+    }
+}
+
+function loadPelanggan() {
+    fetch('/api/customers')
+    .then(r => r.json())
+    .then(data => {
+        pelangganAllData = data;
+        renderPelangganTable();
+        renderPelangganPagination();
+    })
+    .catch(() => {
+        document.getElementById('pelanggan-list').innerHTML = '<div style="color:red;">Gagal memuat data pelanggan.</div>';
+    });
+}
+
+function savePelanggan() {
+    const name = document.getElementById('pelanggan-name').value.trim();
+    if (!name) {
+        document.getElementById('pelanggan-msg').innerText = 'Nama pelanggan wajib diisi!';
+        return;
+    }
+    if (editingPelangganId) {
+        fetch(`/api/customers/${editingPelangganId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        })
+        .then(r => r.json())
+        .then(res => {
+            document.getElementById('pelanggan-msg').innerText = res.success ? 'Pelanggan berhasil diupdate' : (res.message || 'Gagal update');
+            if (res.success) {
+                resetPelangganForm();
+                loadPelanggan();
+            }
+        })
+        .catch(() => {
+            document.getElementById('pelanggan-msg').innerText = 'Error update data.';
+        });
+    } else {
+        fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        })
+        .then(r => r.json())
+        .then(res => {
+            document.getElementById('pelanggan-msg').innerText = res.success ? 'Pelanggan berhasil ditambah' : (res.message || 'Gagal menambah pelanggan');
+            if (res.success) {
+                resetPelangganForm();
+                loadPelanggan();
+            }
+        })
+        .catch(() => {
+            document.getElementById('pelanggan-msg').innerText = 'Gagal menghubungi server.';
+        });
     }
 }
 

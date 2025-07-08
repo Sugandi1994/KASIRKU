@@ -1,0 +1,23 @@
+<section id="page-kategori" class="page" style="display:none;">
+                    <h3>Kelola Kategori</h3>
+                    <!-- existing kategori management content -->
+                </section>
+=======
+                <!-- Kategori Management Page -->
+                <section id="page-kategori" class="page" style="display:none;">
+                    <h3>Kelola Kategori</h3>
+                    <!-- existing kategori management content -->
+                </section>
+                <!-- Pelanggan Management Page -->
+                <section id="page-pelanggan" class="page" style="display:none;">
+                    <h3>Kelola Pelanggan</h3>
+                    <button id="toggle-pelanggan-form-btn" onclick="togglePelangganForm()">Tambah Pelanggan Baru</button>
+                    <div id="pelanggan-form-container" style="display:none; margin-top: 10px;">
+                        <h4 id="pelanggan-form-title">Tambah Pelanggan Baru</h4>
+                        <input id="pelanggan-name" placeholder="Nama Pelanggan">
+                        <button onclick="savePelanggan()" id="pelanggan-save-btn">Simpan</button>
+                        <button onclick="cancelEditPelanggan()" id="pelanggan-cancel-btn" style="display:none;">Batal</button>
+                        <div id="pelanggan-msg"></div>
+                    </div>
+                    <div id="pelanggan-list" style="margin-top: 15px;"></div>
+                </section>

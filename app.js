@@ -459,6 +459,99 @@ app.delete('/api/categories/:id', (req, res) => {
     }
 });
 
+// Pelanggan API
+
+// Ambil semua pelanggan
+app.get('/api/customers', (req, res) => {
+    let customers = [];
+    try {
+        customers = readDB('./db/customers.json');
+    } catch (e) {}
+    res.json(customers);
+});
+
+// Tambah pelanggan
+app.post('/api/customers', (req, res) => {
+    let customers = [];
+    try {
+        customers = readDB('./db/customers.json');
+    } catch (e) {}
+
+    const { name } = req.body;
+    if (typeof name !== 'string' || name.trim() === '') {
+        return res.json({ success: false, message: 'Nama pelanggan wajib diisi.' });
+    }
+
+    let newId = 1;
+    if (customers.length > 0) {
+        newId = Math.max(...customers.map(c => Number(c.id))) + 1;
+    }
+
+    const newCustomer = {
+        id: newId,
+        name: name.trim()
+    };
+
+    customers.push(newCustomer);
+
+    try {
+        writeDB('./db/customers.json', customers);
+        res.json({ success: true, customer: newCustomer });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Gagal menyimpan pelanggan.' });
+    }
+});
+
+// Update pelanggan
+app.put('/api/customers/:id', (req, res) => {
+    let customers = [];
+    try {
+        customers = readDB('./db/customers.json');
+    } catch (e) {
+        return res.status(500).json({ success: false, message: 'Gagal membaca database pelanggan.' });
+    }
+
+    const idx = customers.findIndex(c => String(c.id) === String(req.params.id));
+    if (idx === -1) {
+        return res.json({ success: false, message: 'Pelanggan tidak ditemukan' });
+    }
+
+    const { name } = req.body;
+    if (typeof name !== 'string' || name.trim() === '') {
+        return res.json({ success: false, message: 'Nama pelanggan wajib diisi.' });
+    }
+
+    customers[idx].name = name.trim();
+
+    try {
+        writeDB('./db/customers.json', customers);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Gagal menyimpan perubahan pelanggan.' });
+    }
+});
+
+// Hapus pelanggan
+app.delete('/api/customers/:id', (req, res) => {
+    let customers = [];
+    try {
+        customers = readDB('./db/customers.json');
+    } catch (e) {
+        return res.status(500).json({ success: false, message: 'Gagal membaca database pelanggan.' });
+    }
+    const index = customers.findIndex(c => String(c.id) === String(req.params.id));
+    if (index === -1) {
+        return res.json({ success: false, message: 'Pelanggan tidak ditemukan' });
+    }
+    customers.splice(index, 1);
+    try {
+        writeDB('./db/customers.json', customers);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Gagal menghapus pelanggan.' });
+    }
+});
+
 // Serve frontend
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
