@@ -2053,6 +2053,11 @@ function loadTransactionToCart(trxId) {
     });
     saveCartToStorage();
     renderTrxItems();
+    // Set customer name input value when loading transaction for editing
+    const customerNameInput = document.getElementById('trx-customer-name');
+    if (customerNameInput) {
+        customerNameInput.value = trx.customer_name || '';
+    }
     showPage('transaksi');
 }
 
