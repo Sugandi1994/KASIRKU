@@ -1735,6 +1735,9 @@ function submitTrx() {
         document.getElementById('trx-msg').innerText = 'Tidak ada item transaksi!';
         return;
     }
+    const amountPaidInput = document.getElementById('amount-paid');
+    const amountPaid = parseFloat(amountPaidInput.value) || 0;
+
     fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1744,7 +1747,8 @@ function submitTrx() {
                 qty: i.qty,
                 price: i.price, // harga yang sudah diedit user
                 subtotal: i.price * i.qty // subtotal per item
-            }))
+            })),
+            amount_paid: amountPaid // Kirim jumlah uang diterima ke backend
         })
     })
     .then(r => r.json()).then(res => {
@@ -1975,7 +1979,9 @@ function printTransaction(trxId) {
       <h2>Struk Transaksi</h2>
       <div class="info">
         <b>ID:</b> ${trx.id}<br>
-        <b>Tanggal:</b> ${(new Date(trx.date)).toLocaleString('id-ID')}
+        <b>Tanggal:</b> ${(new Date(trx.date)).toLocaleString('id-ID')}<br>
+        <b>Jumlah Uang Diterima:</b> Rp${(trx.amount_paid || 0).toLocaleString('id-ID')}<br>
+        <b>Kembalian:</b> Rp${(trx.change || 0).toLocaleString('id-ID')}
       </div>
       <table>
         <thead>
