@@ -1757,6 +1757,8 @@ function submitTrx() {
     }
     const amountPaidInput = document.getElementById('amount-paid');
     const amountPaid = parseFloat(amountPaidInput.value) || 0;
+    const customerNameInput = document.getElementById('trx-customer-name');
+    const customerName = customerNameInput ? customerNameInput.value.trim() : '';
 
     if (amountPaid <= 0) {
         document.getElementById('trx-msg').innerText = 'Uang diterima harus diinput dan lebih besar dari 0!';
@@ -1768,6 +1770,7 @@ function submitTrx() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+            customer_name: customerName,
             items: trxItems.map(i => ({
                 product_id: i.product_id,
                 qty: i.qty,
@@ -1795,6 +1798,9 @@ function submitTrx() {
             saveCartToStorage();
             renderTrxItems();
             amountPaidInput.value = '';  // Clear amount paid input after success
+            if (customerNameInput) {
+                customerNameInput.value = ''; // Clear customer name input after success
+            }
             loadTrxList(1); // reload daftar transaksi ke halaman pertama
             loadProducts();
             loadTrxProducts();
@@ -1836,6 +1842,7 @@ function renderTrxTable() {
     const columns = [
         { key: 'no', label: 'No' },
         { key: 'date', label: 'Tanggal', format: (val) => (new Date(val)).toLocaleString('id-ID') },
+        { key: 'customer_name', label: 'Nama Pelanggan' },
         { key: 'items', label: 'Produk', format: (val) => {
             return val.map(it => `
                 <table style="width:100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px;">
@@ -1973,6 +1980,7 @@ function printTransaction(trxId) {
       <h2>Struk Transaksi</h2>
       <div class="info">
         <b>ID:</b> ${trx.id}<br>
+        <b>Nama Pelanggan:</b> ${trx.customer_name || '-'}<br>
         <b>Tanggal:</b> ${(new Date(trx.date)).toLocaleString('id-ID')}<br>
       </div>
       <table>

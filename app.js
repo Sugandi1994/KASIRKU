@@ -201,7 +201,7 @@ app.post('/api/transactions', (req, res) => {
     }
 
     // --- BARU: Ambil total dan amount_paid dari body request ---
-    const { items, total, amount_paid } = req.body; // Sekarang menerima total dan amount_paid
+    const { customer_name, items, total, amount_paid } = req.body; // Sekarang menerima customer_name juga
     // --- AKHIR BARU ---
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -247,6 +247,7 @@ app.post('/api/transactions', (req, res) => {
     const newTransaction = {
         id: Date.now(), // ID unik berdasarkan timestamp
         date: new Date().toISOString(),
+        customer_name: customer_name || '', // Simpan nama pelanggan
         total: calculatedTotal, // Gunakan total yang dihitung di backend
         amount_paid: amount_paid, // --- BARU: Simpan uang yang diterima ---
         change: amount_paid - calculatedTotal, // --- BARU: Hitung dan simpan kembalian ---

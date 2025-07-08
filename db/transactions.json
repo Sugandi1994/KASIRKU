@@ -30,11 +30,12 @@
     ]
   },
   {
-    "id": 1751935979302,
-    "date": "2025-07-08T00:52:59.302Z",
+    "id": 1751952075156,
+    "date": "2025-07-08T05:21:15.156Z",
+    "customer_name": "Sugandi",
     "total": 15000,
-    "amount_paid": 20000,
-    "change": 5000,
+    "amount_paid": 15000,
+    "change": 0,
     "items": [
       {
         "product_id": "1",
