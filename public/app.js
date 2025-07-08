@@ -2093,6 +2093,7 @@ function printTransaction(trxId) {
       <h2>Struk Transaksi</h2>
       <div class="info">
         <b>ID:</b> ${trx.id}<br>
+        <b>Nama Pelanggan:</b> ${trx.customer_name || '-'}<br>
         <b>Tanggal:</b> ${(new Date(trx.date)).toLocaleString('id-ID')}<br>
       </div>
       <table>
