@@ -365,12 +365,14 @@ function loadLastTrxList() {
                     <th style="width:140px;">Tanggal</th>
                     <th>Produk</th>
                     <th style="width:100px;">Total</th>
+                    <th style="width:100px;">Uang Diterima</th>
+                    <th style="width:100px;">Kembalian</th>
                 </tr>
             </thead>
             <tbody>
         `;
         if(trx.length === 0) {
-            html += `<tr><td colspan="4" style="text-align:center;color:#888;">Belum ada transaksi</td></tr>`;
+            html += `<tr><td colspan="6" style="text-align:center;color:#888;">Belum ada transaksi</td></tr>`;
         } else {
             trx.forEach((t, i) => {
                 let items = t.items.map(it =>
@@ -389,6 +391,8 @@ function loadLastTrxList() {
                         <td>${(new Date(t.date)).toLocaleString('id-ID')}</td>
                         <td>${items}</td>
                         <td style="font-weight:bold;color:#38761d;">Rp${t.total.toLocaleString('id-ID')}</td>
+                        <td style="font-weight:bold;color:#38761d;">Rp${(t.amount_paid || 0).toLocaleString('id-ID')}</td>
+                        <td style="font-weight:bold;color:#38761d;">Rp${(t.change || 0).toLocaleString('id-ID')}</td>
                     </tr>
                 `;
             });
@@ -1738,6 +1742,12 @@ function submitTrx() {
     const amountPaidInput = document.getElementById('amount-paid');
     const amountPaid = parseFloat(amountPaidInput.value) || 0;
 
+    if (amountPaid <= 0) {
+        document.getElementById('trx-msg').innerText = 'Uang diterima harus diinput dan lebih besar dari 0!';
+        amountPaidInput.focus();
+        return;
+    }
+
     fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1822,6 +1832,8 @@ function renderTrxTable() {
             `).join('');
         }},
         { key: 'total', label: 'Total', format: (val) => `Rp${val.toLocaleString('id-ID')}` },
+        { key: 'amount_paid', label: 'Uang Diterima', format: (val) => `Rp${(val || 0).toLocaleString('id-ID')}` },
+        { key: 'change', label: 'Kembalian', format: (val) => `Rp${(val || 0).toLocaleString('id-ID')}` },
         { key: 'actions', label: 'Aksi', style: 'text-align:center;' }
     ];
 
@@ -1909,10 +1921,87 @@ function loadTrxList(page = 1) {
 // ... (kode lain tetap sama)
 
 function printTransaction(trxId) {
-  // Cari transaksi berdasarkan id dari semua data transaksi yang sudah di-load
-  const trx = trxAllData.find(t => String(t.id) === String(trxId));
-  if (!trx) return alert('Transaksi tidak ditemukan!');
-  // ... existing printTransaction code ...
+    const trx = trxAllData.find(t => String(t.id) === String(trxId));
+    if (!trx) return alert('Transaksi tidak ditemukan!');
+
+    function toProperCase(str) {
+        return str.replace(/\w\S*/g, function(txt){
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
+    }
+
+    let html = `
+    <html>
+    <head>
+      <title>Print Transaksi #${trx.id}</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin:24px; color:#222; }
+        .struk-container { max-width: 380px; margin: 0 auto; }
+        h2 { text-align: center; margin-bottom: 16px; }
+        .info { margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        th, td { padding: 5px 8px; border: 1px solid #ccc; font-size: 14px; }
+        th { background: #f4f4f4; }
+        .right { text-align: right; }
+        tfoot th { background: #fff; font-size: 16px; }
+        .footer { text-align: center; font-size: 13px; margin-top: 20px; color: #555; }
+        @media print {
+          button { display: none; }
+          body { margin: 0; }
+        }
+      </style>
+    </head>
+    <body>
+    <div class="struk-container">
+      <h2>Struk Transaksi</h2>
+      <div class="info">
+        <b>ID:</b> ${trx.id}<br>
+        <b>Tanggal:</b> ${(new Date(trx.date)).toLocaleString('id-ID')}<br>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Produk</th>
+            <th>Qty</th>
+            <th>Harga</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+    trx.items.forEach(it => {
+        html += `<tr>
+      <td>${toProperCase(it.name)}</td>
+      <td class="right">${it.qty}</td>
+      <td class="right">Rp${it.price.toLocaleString('id-ID')}</td>
+      <td class="right">Rp${(it.subtotal || it.qty * it.price).toLocaleString('id-ID')}</td>
+    </tr>`;
+    });
+    html += `
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="3" class="right">Total</th>
+            <th class="right">Rp${trx.total.toLocaleString('id-ID')}</th>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="info" style="margin-top: 12px;">
+        <b>Jumlah Uang Diterima:</b> Rp${(trx.amount_paid || 0).toLocaleString('id-ID')}<br>
+        <b>Kembalian:</b> Rp${(trx.change || 0).toLocaleString('id-ID')}
+      </div>
+      <button onclick="window.print()">Print</button>
+      <div class="footer">
+        Terima kasih telah berbelanja!<br>
+        <span style="font-size:12px;">POS Kasirku &copy; 2025</span>
+      </div>
+    </div>
+    </body>
+    </html>
+  `;
+    let win = window.open('', '_blank', 'width=400,height=600');
+    win.document.write(html);
+    win.document.close();
 }
 
 // New function to load transaction items back to cart for editing
@@ -1980,8 +2069,6 @@ function printTransaction(trxId) {
       <div class="info">
         <b>ID:</b> ${trx.id}<br>
         <b>Tanggal:</b> ${(new Date(trx.date)).toLocaleString('id-ID')}<br>
-        <b>Jumlah Uang Diterima:</b> Rp${(trx.amount_paid || 0).toLocaleString('id-ID')}<br>
-        <b>Kembalian:</b> Rp${(trx.change || 0).toLocaleString('id-ID')}
       </div>
       <table>
         <thead>
@@ -2011,6 +2098,10 @@ function printTransaction(trxId) {
           </tr>
         </tfoot>
       </table>
+      <div class="info" style="margin-top: 12px;">
+        <b>Jumlah Uang Diterima:</b> Rp${(trx.amount_paid || 0).toLocaleString('id-ID')}<br>
+        <b>Kembalian:</b> Rp${(trx.change || 0).toLocaleString('id-ID')}
+      </div>
       <button onclick="window.print()">Print</button>
       <div class="footer">
         Terima kasih telah berbelanja!<br>
