@@ -1555,6 +1555,14 @@ document.addEventListener('DOMContentLoaded', function() {
             userEditedPrice = true;
         });
     }
+
+    // Add event listener to amount-paid input to update change display on input
+    const amountPaidInput = document.getElementById('amount-paid');
+    if (amountPaidInput) {
+        amountPaidInput.addEventListener('input', () => {
+            calculateChange();
+        });
+    }
 });
 document.addEventListener('DOMContentLoaded', function() {
     let trxProduct = document.getElementById('trx-product');
@@ -1697,6 +1705,13 @@ function calculateChange() {
     totalAmountText = totalAmountText.replace('Rp', '').replace(/\./g, '');
     const totalAmount = parseFloat(totalAmountText) || 0;
 
+    // If cart is empty or total is 0, reset change to 0
+    if (trxItems.length === 0 || totalAmount === 0) {
+        changeDisplay.style.color = 'green';
+        changeDisplay.innerText = 'Rp0';
+        return;
+    }
+
     let change = amountPaid - totalAmount;
 
     if (change < 0) {
@@ -1778,6 +1793,7 @@ function submitTrx() {
             trxItems = [];
             saveCartToStorage();
             renderTrxItems();
+            amountPaidInput.value = '';  // Clear amount paid input after success
             loadTrxList(1); // reload daftar transaksi ke halaman pertama
             loadProducts();
             loadTrxProducts();
