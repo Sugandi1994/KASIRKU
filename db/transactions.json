@@ -13,5 +13,20 @@
         "subtotal": 15000
       }
     ]
+  },
+  {
+    "id": 1751935666558,
+    "date": "2025-07-08T00:47:46.558Z",
+    "total": 15000,
+    "change": null,
+    "items": [
+      {
+        "product_id": "1",
+        "name": "153",
+        "qty": 1,
+        "price": 15000,
+        "subtotal": 15000
+      }
+    ]
   }
 ]
