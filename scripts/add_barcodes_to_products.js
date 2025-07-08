@@ -1,19 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 
-const productsFilePath = path.join(__dirname, '..', 'db', 'products.json');
+// Use process.cwd() to resolve path relative to current working directory
+const productsFilePath = path.join(process.cwd(), 'db', 'products.json');
 
 function addBarcodeToProducts() {
   try {
     const data = fs.readFileSync(productsFilePath, 'utf-8');
     const products = JSON.parse(data);
 
-    // Add barcode field if missing, initialize with empty string or generate a default barcode
+    // Add barcode field if missing, generate a default barcode based on product id
     const updatedProducts = products.map(product => {
-      if (!product.hasOwnProperty('barcode')) {
-        // You can customize barcode generation logic here
-        // For now, set barcode as empty string
-        product.barcode = '';
+      if (!product.hasOwnProperty('barcode') || product.barcode === '') {
+        // Generate barcode as a string "BARCODE" + product id padded to 6 digits
+        const idStr = product.id ? product.id.toString().padStart(6, '0') : '000000';
+        product.barcode = `BARCODE${idStr}`;
       }
       return product;
     });
