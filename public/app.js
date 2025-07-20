@@ -1346,17 +1346,33 @@ function loadProducts() {
 }
 
 function loadCategoryOptions() {
-    fetch('/api/categories').then(r => r.json()).then(categories => {
-        const select = document.getElementById('prodcategory');
-        if (!select) return;
-        select.innerHTML = '<option value="">-- Pilih Kategori --</option>';
-        categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.name;
-            option.textContent = cat.name;
-            select.appendChild(option);
-        });
+  fetch("/api/categories")
+    .then((r) => r.json())
+    //AWAL UPDATE
+    .then((categories) => {
+      categories.sort((a, b) => a.name.localeCompare(b.name)); // ⬅️ Urutkan berdasarkan nama ASC
+      const select = document.getElementById("prodcategory");
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Pilih Kategori --</option>';
+      categories.forEach((cat) => {
+        const option = document.createElement("option");
+        option.value = cat.name;
+        option.textContent = cat.name;
+        select.appendChild(option);
+      });
     });
+  //AKHIR UPDATE
+  //.then((categories) => {
+  // const select = document.getElementById("prodcategory");
+  //if (!select) return;
+  //select.innerHTML = '<option value="">-- Pilih Kategori --</option>';
+  //categories.forEach((cat) => {
+  // const option = document.createElement("option");
+  // option.value = cat.name;
+  // option.textContent = cat.name;
+  // select.appendChild(option);
+  //  });
+  //  });
 }
 
 // Update showPage to load categories options when showing product page
