@@ -76,7 +76,7 @@
     "name": "Afitson 18 gram",
     "buy_price": 0,
     "sell_price": 9500,
-    "stock": 0,
+    "stock": -1,
     "category": "Obat",
     "barcode": ""
   },
@@ -769,7 +769,7 @@
     "name": "Desaku Ketumbar",
     "buy_price": 0,
     "sell_price": 1000,
-    "stock": 0,
+    "stock": -3,
     "category": "Bumbu Dapur",
     "barcode": ""
   },

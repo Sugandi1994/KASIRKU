@@ -62,5 +62,39 @@
         "subtotal": 15000
       }
     ]
+  },
+  {
+    "id": 1751960033117,
+    "date": "2025-07-08T07:33:53.117Z",
+    "customer_name": "Sugandi",
+    "total": 3000,
+    "amount_paid": 5000,
+    "change": 2000,
+    "items": [
+      {
+        "product_id": "86",
+        "name": "Desaku Ketumbar",
+        "qty": 3,
+        "price": 1000,
+        "subtotal": 3000
+      }
+    ]
+  },
+  {
+    "id": 1751960216739,
+    "date": "2025-07-08T07:36:56.739Z",
+    "customer_name": "",
+    "total": 11500,
+    "amount_paid": 12000,
+    "change": 500,
+    "items": [
+      {
+        "product_id": "9",
+        "name": "Afitson 18 gram",
+        "qty": 1,
+        "price": 11500,
+        "subtotal": 11500
+      }
+    ]
   }
 ]
