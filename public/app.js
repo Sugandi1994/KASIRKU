@@ -454,9 +454,14 @@ function showPage(page) {
 }
 
 
+let dailyChart = null;
+let monthlyChart = null;
+
 function loadIncome() {
-    const filterMonth = document.getElementById('income-filter-month').value; // yyyy-MM
-    const filterYear = document.getElementById('income-filter-year').value;   // yyyy
+    const filterMonth = document.getElementById('income-filter-month').value;
+    const filterYear = document.getElementById('income-filter-year').value;
+    const filterStart = document.getElementById('income-filter-start').value;
+    const filterEnd = document.getElementById('income-filter-end').value;
 
     fetch('/api/income')
     .then(r => r.json())
@@ -468,7 +473,11 @@ function loadIncome() {
         const data = res.data;
         let dates = Object.keys(data).sort((a,b) => a.localeCompare(b));
 
-        // Filter data
+        // Filter range tanggal
+        if (filterStart && filterEnd) {
+            dates = dates.filter(date => date >= filterStart && date <= filterEnd);
+        }
+        // Filter
         if (filterMonth) {
             dates = dates.filter(date => date.startsWith(filterMonth));
         } else if (filterYear) {
@@ -477,52 +486,48 @@ function loadIncome() {
 
         const totals = dates.map(date => data[date]);
 
-        // Hitung total pendapatan
-        const totalPendapatan = totals.reduce((a,b) => a+b, 0);
-        document.getElementById('income-total').innerText = 
-            `Total Pendapatan: Rp${totalPendapatan.toLocaleString('id-ID')}`;
+        // Total pendapatan
+        const total = totals.reduce((a,b) => a+b,0);
+        document.getElementById('income-total').innerText =
+            `Total Pendapatan: Rp${total.toLocaleString('id-ID')}`;
 
-        // Tampilkan tabel
-        let html = `
-        <div class="table-responsive">
-        <table class="common-table" id="income-table">
-            <thead>
-                <tr>
-                    <th>Tanggal</th>
-                    <th>Total Pendapatan</th>
-                </tr>
-            </thead>
-            <tbody>
-        `;
-        dates.slice().reverse().forEach(date => {
-            html += `<tr>
-                <td>${date}</td>
-                <td style="text-align:right;">Rp${data[date].toLocaleString('id-ID')}</td>
-            </tr>`;
+        // Tabel
+        let html = `<div class="table-responsive"><table class="common-table" id="income-table">
+            <thead><tr><th>Tanggal</th><th>Total Pendapatan</th></tr></thead><tbody>`;
+        dates.slice().reverse().forEach(date=>{
+            html+=`<tr><td>${date}</td><td style="text-align:right;">Rp${data[date].toLocaleString('id-ID')}</td></tr>`;
         });
-        html += '</tbody></table></div>';
-        document.getElementById('income-list').innerHTML = html;
+        html+=`</tbody></table></div>`;
+        document.getElementById('income-list').innerHTML=html;
 
-        // Grafik bulanan jika filter tahun, grafik harian jika tidak
-        if (filterYear && !filterMonth) {
-            // Rekap per bulan
-            const monthlyData = {}; // key: yyyy-MM, value: total
-            dates.forEach(date => {
-                const month = date.substr(0,7); // yyyy-MM
-                if (!monthlyData[month]) monthlyData[month]=0;
-                monthlyData[month] += data[date];
-            });
-            const months = Object.keys(monthlyData).sort();
-            const monthTotals = months.map(m=>monthlyData[m]);
-            renderIncomeChart(months, monthTotals, 'line');
-        } else {
-            renderIncomeChart(dates, totals, 'line');
-        }
+        // Chart harian
+        if (dailyChart) dailyChart.destroy();
+        dailyChart = new Chart(document.getElementById('income-chart-daily').getContext('2d'), {
+            type:'line',
+            data:{labels:dates,datasets:[{label:'Harian',data:totals, borderColor:'blue', fill:true,tension:0.3}]},
+            options:{scales:{y:{beginAtZero:true}}}
+        });
+
+        // Chart bulanan
+        const monthly={}; // key=yyyy-MM
+        dates.forEach(d=>{
+            const m=d.substr(0,7);
+            if(!monthly[m])monthly[m]=0;
+            monthly[m]+=data[d];
+        });
+        const months=Object.keys(monthly).sort();
+        const monthTotals=months.map(m=>monthly[m]);
+
+        if(monthlyChart) monthlyChart.destroy();
+        monthlyChart = new Chart(document.getElementById('income-chart-monthly').getContext('2d'), {
+            type:'bar',
+            data:{labels:months,datasets:[{label:'Bulanan',data:monthTotals,backgroundColor:'rgba(22,139,255,0.5)'}]},
+            options:{scales:{y:{beginAtZero:true}}}
+        });
     })
-    .catch(() => {
-        document.getElementById('income-list').innerText = 'Error saat mengambil data pendapatan.';
-    });
+    .catch(()=>{document.getElementById('income-list').innerText='Error';});
 }
+
 
 
 
@@ -588,17 +593,39 @@ function exportIncomeExcel() {
 
 
 function exportIncomePDF() {
-    const container = document.getElementById('page-pendapatan');
+    const container = document.getElementById('income-export-area');
     html2canvas(container).then(canvas => {
         const imgData = canvas.toDataURL('image/png');
-        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-        const imgProps= pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
+
+        // UMD: akses constructor seperti ini
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        pdf.setFontSize(16);
+        pdf.text("Laporan Pendapatan", 105, 20, null, null, "center");
+
+        // Logo opsional - skip kalau error
+        try {
+            pdf.addImage('/img/logo.png', 'PNG', 15, 10, 30, 30);
+        } catch (e) {
+            console.warn('Logo tidak ditemukan, lanjut tanpa logo');
+        }
+
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth() - 30;
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+        pdf.addImage(imgData, 'PNG', 15, 40, pdfWidth, pdfHeight);
         pdf.save("pendapatan.pdf");
+    })
+    .catch(err => {
+        console.error('Error export PDF:', err);
+        alert('Gagal membuat PDF');
     });
 }
+
+
+
 
 
 

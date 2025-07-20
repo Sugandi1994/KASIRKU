@@ -130,5 +130,22 @@
         "subtotal": 15000
       }
     ]
+  },
+  {
+    "id": 1753041007765,
+    "date": "2025-07-20T19:50:07.765Z",
+    "customer_name": "",
+    "total": 19000,
+    "amount_paid": 20000,
+    "change": 1000,
+    "items": [
+      {
+        "product_id": "111",
+        "name": "GM Besar",
+        "qty": 1,
+        "price": 19000,
+        "subtotal": 19000
+      }
+    ]
   }
 ]
