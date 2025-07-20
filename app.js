@@ -561,6 +561,24 @@ app.get('/barcode-scanner.html', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../public/barcode-scanner.html'));
 });
 
+
+// app.js
+app.get('/api/income', (req, res) => {
+    try {
+        const transactions = readDB('./db/transactions.json');
+        const summary = {};
+        transactions.forEach(t => {
+            const date = t.date.substr(0, 10);
+            if (!summary[date]) summary[date] = 0;
+            summary[date] += t.total;
+        });
+        res.json({ success: true, data: summary });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Gagal membaca data transaksi.' });
+    }
+});
+
+
 app.listen(PORT, () => {
     console.log(`POS app listening at http://localhost:${PORT}`);
 });

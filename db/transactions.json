@@ -96,5 +96,39 @@
         "subtotal": 11500
       }
     ]
+  },
+  {
+    "id": 1753038206908,
+    "date": "2025-07-20T19:03:26.908Z",
+    "customer_name": "",
+    "total": 10000,
+    "amount_paid": 20000,
+    "change": 10000,
+    "items": [
+      {
+        "product_id": "3",
+        "name": "7 Kurma",
+        "qty": 1,
+        "price": 10000,
+        "subtotal": 10000
+      }
+    ]
+  },
+  {
+    "id": 1753038228049,
+    "date": "2025-07-20T19:03:48.049Z",
+    "customer_name": "",
+    "total": 15000,
+    "amount_paid": 20000,
+    "change": 5000,
+    "items": [
+      {
+        "product_id": "1",
+        "name": "153",
+        "qty": 1,
+        "price": 15000,
+        "subtotal": 15000
+      }
+    ]
   }
 ]

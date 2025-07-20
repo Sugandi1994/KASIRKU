@@ -412,7 +412,9 @@ function showPage(page) {
     if(page === 'kategori') loadCategories();
     if(page === 'pelanggan') loadPelanggan();
     if(page === 'daftar') loadTrxList(1);
-    if(page === 'transaksi') {
+    if (page === 'pendapatan') loadIncome();
+    if(page === 'transaksi')
+         {
         loadTrxProducts();
         renderTrxItems(); // Untuk tabel keranjang transaksi
         loadLastTrxList(); // --- Tampilkan 5 transaksi terakhir di bawah form transaksi
@@ -438,17 +440,167 @@ function showMenuByRole() {
 function showPage(page) {
     document.querySelectorAll('.page').forEach(section => section.style.display = 'none');
     document.getElementById('page-' + page).style.display = '';
-    if(page === 'user') loadUsers();
-    if(page === 'produk') loadProducts();
-    if(page === 'kategori') loadCategories();
-    if(page === 'pelanggan') loadPelanggan();
-    if(page === 'daftar') loadTrxList(1);
-    if(page === 'transaksi') {
+    if (page === 'user') loadUsers();
+    if (page === 'produk') loadProducts();
+    if (page === 'kategori') loadCategories();
+    if (page === 'pelanggan') loadPelanggan();
+    if (page === 'daftar') loadTrxList(1);
+    if (page === 'transaksi') {
         loadTrxProducts();
-        renderTrxItems(); // Untuk tabel keranjang transaksi
-        loadLastTrxList(); // --- Tampilkan 5 transaksi terakhir di bawah form transaksi
+        renderTrxItems();
+        loadLastTrxList();
     }
+    if (page === 'pendapatan') loadIncome(); // Tambahkan ini
 }
+
+
+function loadIncome() {
+    const filterMonth = document.getElementById('income-filter-month').value; // yyyy-MM
+    const filterYear = document.getElementById('income-filter-year').value;   // yyyy
+
+    fetch('/api/income')
+    .then(r => r.json())
+    .then(res => {
+        if (!res.success) {
+            document.getElementById('income-list').innerText = 'Gagal memuat data pendapatan.';
+            return;
+        }
+        const data = res.data;
+        let dates = Object.keys(data).sort((a,b) => a.localeCompare(b));
+
+        // Filter data
+        if (filterMonth) {
+            dates = dates.filter(date => date.startsWith(filterMonth));
+        } else if (filterYear) {
+            dates = dates.filter(date => date.startsWith(filterYear));
+        }
+
+        const totals = dates.map(date => data[date]);
+
+        // Hitung total pendapatan
+        const totalPendapatan = totals.reduce((a,b) => a+b, 0);
+        document.getElementById('income-total').innerText = 
+            `Total Pendapatan: Rp${totalPendapatan.toLocaleString('id-ID')}`;
+
+        // Tampilkan tabel
+        let html = `
+        <div class="table-responsive">
+        <table class="common-table" id="income-table">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Total Pendapatan</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        dates.slice().reverse().forEach(date => {
+            html += `<tr>
+                <td>${date}</td>
+                <td style="text-align:right;">Rp${data[date].toLocaleString('id-ID')}</td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+        document.getElementById('income-list').innerHTML = html;
+
+        // Grafik bulanan jika filter tahun, grafik harian jika tidak
+        if (filterYear && !filterMonth) {
+            // Rekap per bulan
+            const monthlyData = {}; // key: yyyy-MM, value: total
+            dates.forEach(date => {
+                const month = date.substr(0,7); // yyyy-MM
+                if (!monthlyData[month]) monthlyData[month]=0;
+                monthlyData[month] += data[date];
+            });
+            const months = Object.keys(monthlyData).sort();
+            const monthTotals = months.map(m=>monthlyData[m]);
+            renderIncomeChart(months, monthTotals, 'line');
+        } else {
+            renderIncomeChart(dates, totals, 'line');
+        }
+    })
+    .catch(() => {
+        document.getElementById('income-list').innerText = 'Error saat mengambil data pendapatan.';
+    });
+}
+
+
+
+
+
+let incomeChart = null;
+function renderIncomeChart(labels, data, type='line') {
+    const ctx = document.getElementById('income-chart').getContext('2d');
+    if (incomeChart) incomeChart.destroy();
+
+    incomeChart = new Chart(ctx, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Pendapatan (Rp)',
+                data: data,
+                borderColor: 'rgba(22,139,255,1)',
+                backgroundColor: 'rgba(22,139,255,0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+function printIncome() {
+    const printWindow = window.open('', '_blank');
+    const htmlContent = `
+    <html>
+    <head>
+      <title>Data Pendapatan</title>
+      <style>
+        body{font-family:Arial; padding:20px;}
+        h3{margin-bottom:5px;}
+        table{border-collapse:collapse; width:100%;}
+        th,td{border:1px solid #000; padding:8px; text-align:left;}
+      </style>
+    </head>
+    <body>
+      <h3>Data Pendapatan</h3>
+      <div>${document.getElementById('income-total').outerHTML}</div>
+      ${document.getElementById('income-list').innerHTML}
+    </body>
+    </html>`;
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+}
+
+
+function exportIncomeExcel() {
+    const table = document.getElementById('income-table');
+    if (!table) return alert('Data belum tersedia.');
+
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Pendapatan" });
+    XLSX.writeFile(wb, "pendapatan.xlsx");
+}
+
+
+function exportIncomePDF() {
+    const container = document.getElementById('page-pendapatan');
+    html2canvas(container).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        const imgProps= pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save("pendapatan.pdf");
+    });
+}
+
+
 
 function togglePelangganForm() {
     const formContainer = document.getElementById('pelanggan-form-container');

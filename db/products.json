@@ -4,7 +4,7 @@
     "name": "153",
     "buy_price": 0,
     "sell_price": 15000,
-    "stock": -5,
+    "stock": -6,
     "category": "Rokok",
     "barcode": "100"
   },
@@ -22,7 +22,7 @@
     "name": "7 Kurma",
     "buy_price": 0,
     "sell_price": 10000,
-    "stock": 0,
+    "stock": -1,
     "category": "Susu",
     "barcode": ""
   },
